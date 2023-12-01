@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Producto;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class ProductController extends Controller
 {
@@ -83,6 +84,20 @@ class ProductController extends Controller
     public function destroy(string $id)
     {
         $product = Producto::findOrFail($id);
-        return response()->json($product->delete());
+
+        // Convert the URL to a file path
+        $urlParts = parse_url($product->fotos);
+        $filePath = public_path($urlParts['path']);
+    
+        // Delete the image from the server
+        if (File::exists($filePath)) {
+            File::delete($filePath);
+        }
+    
+        // Delete the product from the database
+        $product->delete();
+    
+        return response()->json('Product deleted');
+        
     }
 }
